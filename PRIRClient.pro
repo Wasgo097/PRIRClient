@@ -10,11 +10,13 @@ CONFIG += c++17
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    mytask.cpp
 
 HEADERS += \
     Utilities.h \
-    mainwindow.h
+    mainwindow.h \
+    mytask.h
 
 FORMS += \
     mainwindow.ui

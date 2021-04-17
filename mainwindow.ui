@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -150,11 +150,31 @@
      <attribute name="title">
       <string>Zamów/Zarezerwuj</string>
      </attribute>
+     <widget class="QListWidget" name="allbooks">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>10</y>
+        <width>721</width>
+        <height>311</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_5">
      <attribute name="title">
       <string>Moja zawartość</string>
      </attribute>
+     <widget class="QListWidget" name="mybooks">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>10</y>
+        <width>721</width>
+        <height>311</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>

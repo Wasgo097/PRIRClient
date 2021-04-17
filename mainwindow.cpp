@@ -6,24 +6,36 @@
 #include <QDebug>
 #include <QString>
 #include <QMessageBox>
+#include <QTcpSocket>
 typedef  std::string string;
 MainWindow::MainWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::MainWindow){
     ui->setupUi(this);
-    _state.Resource=UserState::Unconnected;
-    _socket.Resource=std::shared_ptr<QTcpSocket>(new QTcpSocket(this));
-    _socket.Resource->connectToHost(QString("127.0.0.1"),7654);
-    if(_socket.Resource->waitForConnected()){
-        _state.Resource=UserState::Connected;
+    _state.reset();
+    _state->Resource=UserState::Unconnected;
+    _socket->Resource=std::shared_ptr<QTcpSocket>(new QTcpSocket(this));
+    _socket->Resource->connectToHost(QString("127.0.0.1"),7654);
+    if(_socket->Resource->waitForConnected()){
+        _state->Resource=UserState::Connected;
         qDebug()<<"Polaczono";
     }
 }
 MainWindow::~MainWindow(){
     delete ui;
 }
+void MainWindow::clear_all_books(){
+    ui_mtx.lock();
+    ui->allbooks->clear();
+    ui_mtx.unlock();
+}
+void MainWindow::clear_my_books(){
+    ui_mtx.lock();
+    ui->mybooks->clear();
+    ui_mtx.unlock();
+}
 void MainWindow::on_login_clicked(){
     qDebug()<<"Login";
-    _state.Resourc_mtx.lock();
-    if(_state.Resource==UserState::Logged){
+    _state->Resourc_mtx.lock();
+    if(_state->Resource==UserState::Logged){
         QMessageBox msg(this);
         msg.setIcon(QMessageBox::Warning);
         msg.setText("Jesteś już zalogowany");
@@ -32,22 +44,22 @@ void MainWindow::on_login_clicked(){
         msg.setStandardButtons(QMessageBox::Ok);
         msg.exec();
     }
-    else if(_state.Resource==UserState::Connected){
-        _socket.Resource_mtx.lock();
+    else if(_state->Resource==UserState::Connected){
+        _socket->Resource_mtx.lock();
         string login=ui->loginname->text().toStdString();
         string password=ui->loginpass->text().toStdString();
         string fullmess="LOG|"+login+"|"+password+"\r\n";
-        _socket.Resource->write(fullmess.c_str());
-        _socket.Resource->waitForBytesWritten();
-        if(_socket.Resource->waitForReadyRead()){
-            QString read=_socket.Resource->readLine().trimmed();
+        _socket->Resource->write(fullmess.c_str());
+        _socket->Resource->waitForBytesWritten();
+        if(_socket->Resource->waitForReadyRead()){
+            QString read=_socket->Resource->readLine().trimmed();
             auto list=read.split('|');
             if(list.count()==2&&list[0]=="LOG"&&list[1]=="TRUE"){
-                _user.Resourc_mtx.lock();
-                _state.Resource=UserState::Logged;
-                _user.Resource.login=login;
-                _user.Resource.password=password;
-                _user.Resourc_mtx.unlock();
+                _user->Resourc_mtx.lock();
+                _state->Resource=UserState::Logged;
+                _user->Resource.login=login;
+                _user->Resource.password=password;
+                _user->Resourc_mtx.unlock();
                 QMessageBox msg(this);
                 msg.setIcon(QMessageBox::Information);
                 msg.setText("Poprawnie zalogowano");
@@ -75,35 +87,35 @@ void MainWindow::on_login_clicked(){
             msg.setStandardButtons(QMessageBox::Ok);
             msg.exec();
         }
-        _socket.Resource_mtx.unlock();
+        _socket->Resource_mtx.unlock();
     }
     else{
         qDebug()<<"Socket nie polaczony";
     }
-    _state.Resourc_mtx.unlock();
+    _state->Resourc_mtx.unlock();
 }
 void MainWindow::on_reg_clicked(){
     qDebug()<<"Registry";
-    _state.Resourc_mtx.lock();
-    if(_state.Resource==UserState::Unconnected){
+    _state->Resourc_mtx.lock();
+    if(_state->Resource==UserState::Unconnected){
         qDebug()<<"Socket nie polaczony";
     }
-    else if(_state.Resource==UserState::Connected){
-        _socket.Resource_mtx.lock();
+    else if(_state->Resource==UserState::Connected){
+        _socket->Resource_mtx.lock();
         string login=ui->regname->text().toStdString();
         string password=ui->regpass->text().toStdString();
         string fullmess="REG|"+login+"|"+password+"\r\n";
-        _socket.Resource->write(fullmess.c_str());
-        _socket.Resource->waitForBytesWritten();
-        if(_socket.Resource->waitForReadyRead()){
-            QString read=_socket.Resource->readLine().trimmed();
+        _socket->Resource->write(fullmess.c_str());
+        _socket->Resource->waitForBytesWritten();
+        if(_socket->Resource->waitForReadyRead()){
+            QString read=_socket->Resource->readLine().trimmed();
             auto list=read.split('|');
             if(list.count()==2&&list[0]=="REG"&&list[1]=="TRUE"){
-                _user.Resourc_mtx.lock();
-                _state.Resource=UserState::Logged;
-                _user.Resource.login=login;
-                _user.Resource.password=password;
-                _user.Resourc_mtx.unlock();
+                _user->Resourc_mtx.lock();
+                _state->Resource=UserState::Logged;
+                _user->Resource.login=login;
+                _user->Resource.password=password;
+                _user->Resourc_mtx.unlock();
                 QMessageBox msg(this);
                 msg.setIcon(QMessageBox::Information);
                 msg.setText("Poprawnie zarejestrowano");
@@ -131,7 +143,7 @@ void MainWindow::on_reg_clicked(){
             msg.setStandardButtons(QMessageBox::Ok);
             msg.exec();
         }
-        _socket.Resource_mtx.unlock();
+        _socket->Resource_mtx.unlock();
     }
     else{
         QMessageBox msg(this);
@@ -142,15 +154,5 @@ void MainWindow::on_reg_clicked(){
         msg.setStandardButtons(QMessageBox::Ok);
         msg.exec();
     }
-    _state.Resourc_mtx.unlock();
-}
-
-void MainWindow::connect()
-{
-
-}
-
-void MainWindow::unconnect()
-{
-
+    _state->Resourc_mtx.unlock();
 }
