@@ -14,6 +14,8 @@ public:
     ~MainWindow();
     void clear_all_books();
     void clear_my_books();
+    void fill_all_books(const QStringList & List);
+    void fill_my_books(const QStringList & List);
 private slots:
     void on_login_clicked();
     void on_reg_clicked();

@@ -5,6 +5,7 @@
 
 #include <QDebug>
 #include <QString>
+#include <QStringList>
 #include <QMessageBox>
 #include <QTcpSocket>
 typedef  std::string string;
@@ -30,6 +31,16 @@ void MainWindow::clear_all_books(){
 void MainWindow::clear_my_books(){
     ui_mtx.lock();
     ui->mybooks->clear();
+    ui_mtx.unlock();
+}
+void MainWindow::fill_all_books(const QStringList &List){
+    ui_mtx.lock();
+    ui->allbooks->addItems(List);
+    ui_mtx.unlock();
+}
+void MainWindow::fill_my_books(const QStringList &List){
+    ui_mtx.lock();
+    ui->mybooks->addItems(List);
     ui_mtx.unlock();
 }
 void MainWindow::on_login_clicked(){

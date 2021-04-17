@@ -1,13 +1,17 @@
 #ifndef MYTASK_H
 #define MYTASK_H
+#include <memory>
 #include <QThread>
 #include "Utilities.h"
-class MainWindow;
+#include "mainwindow.h"
 class QTcpSocket;
 class MyTask : public QThread{
     Q_OBJECT
 public:
-    MyTask(MainWindow * Window,std::shared_ptr<ThreadingResources<QTcpSocket>> socket,std::shared_ptr<ThreadingResourcesLight<UserState>> state,std::shared_ptr<ThreadingResourcesLight<UserData>> user);
+    MyTask(MainWindow * Window,
+           std::shared_ptr<ThreadingResources<QTcpSocket>> socket,
+           std::shared_ptr<ThreadingResourcesLight<UserState>> state,
+           std::shared_ptr<ThreadingResourcesLight<UserData>> user);
 protected:
     MainWindow * Window;
     std::shared_ptr<ThreadingResources<QTcpSocket>> _socket;
