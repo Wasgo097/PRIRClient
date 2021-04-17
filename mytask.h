@@ -1,7 +1,9 @@
 #ifndef MYTASK_H
 #define MYTASK_H
 #include <memory>
+#include <string>
 #include <QThread>
+#include <QTcpSocket>
 #include "Utilities.h"
 #include "mainwindow.h"
 class QTcpSocket;

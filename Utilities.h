@@ -38,6 +38,14 @@ struct Book{
     QString Author;
     QString Date;
     BookState State=BookState::Default;
+    QString ToQStr(){
+        QString Statee;
+        if(State==BookState::Available)
+            Statee="Available";
+        else
+            Statee="Unavailable";
+        return Id+" "+Name+" "+Author+" "+Date+" "+Statee;
+    }
 };
 
 #endif // UTILITIES_H
