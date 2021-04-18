@@ -43,6 +43,12 @@ void MainWindow::fill_my_books(const QStringList &List){
     ui->mybooks->addItems(List);
     ui_mtx.unlock();
 }
+const Book MainWindow::get_current_book()const{
+    return _current_book;
+}
+const Book MainWindow::get_current_my_book() const{
+    return _my_current_book;
+}
 void MainWindow::on_login_clicked(){
     qDebug()<<"Login";
     _state->Resourc_mtx.lock();
@@ -166,4 +172,14 @@ void MainWindow::on_reg_clicked(){
         msg.exec();
     }
     _state->Resourc_mtx.unlock();
+}
+void MainWindow::on_allbooks_currentRowChanged(int currentRow){
+    ALLBOOOKS->Resource_mtx.lock();
+    _current_book=(*ALLBOOOKS->Resource)[currentRow];
+    ALLBOOOKS->Resource_mtx.unlock();
+}
+void MainWindow::on_mybooks_currentRowChanged(int currentRow){
+    MYBOOKS->Resource_mtx.lock();
+    _my_current_book=(*MYBOOKS->Resource)[currentRow];
+    MYBOOKS->Resource_mtx.unlock();
 }
