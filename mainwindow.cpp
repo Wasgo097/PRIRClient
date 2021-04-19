@@ -35,24 +35,24 @@ MainWindow::~MainWindow(){
     delete ui;
 }
 void MainWindow::clear_all_books(){
-    ui_mtx.lock();
+    //ui_mtx.lock();
     ui->allbooks->clear();
-    ui_mtx.unlock();
+    //ui_mtx.unlock();
 }
 void MainWindow::clear_my_books(){
-    ui_mtx.lock();
+    //ui_mtx.lock();
     ui->mybooks->clear();
-    ui_mtx.unlock();
+    //ui_mtx.unlock();
 }
 void MainWindow::fill_all_books(const QStringList &List){
-    ui_mtx.lock();
+    //ui_mtx.lock();
     ui->allbooks->addItems(List);
-    ui_mtx.unlock();
+    //ui_mtx.unlock();
 }
 void MainWindow::fill_my_books(const QStringList &List){
-    ui_mtx.lock();
+    //ui_mtx.lock();
     ui->mybooks->addItems(List);
-    ui_mtx.unlock();
+    //ui_mtx.unlock();
 }
 const Book MainWindow::get_current_book()const{
     return _current_book;
@@ -118,8 +118,8 @@ void MainWindow::on_login_clicked(){
 //    _socket->Resource_mtx.unlock();
 }
 void MainWindow::on_reg_clicked(){
-    _state->Resourc_mtx.lock();
-    _socket->Resource_mtx.lock();
+//    _state->Resourc_mtx.lock();
+//    _socket->Resource_mtx.lock();
     if(_state->Resource==UserState::Unconnected){
         qDebug()<<"Socket nie polaczony";
     }
@@ -170,18 +170,18 @@ void MainWindow::on_reg_clicked(){
         msg.setStandardButtons(QMessageBox::Ok);
         msg.exec();
     }
-    _state->Resourc_mtx.unlock();
-    _socket->Resource_mtx.unlock();
+//    _state->Resourc_mtx.unlock();
+//    _socket->Resource_mtx.unlock();
 }
 void MainWindow::on_allbooks_currentRowChanged(int currentRow){
-    ALLBOOOKS->Resource_mtx.lock();
+    //ALLBOOOKS->Resource_mtx.lock();
     _current_book=(*ALLBOOOKS->Resource)[currentRow];
-    ALLBOOOKS->Resource_mtx.unlock();
+    //ALLBOOOKS->Resource_mtx.unlock();
 }
 void MainWindow::on_mybooks_currentRowChanged(int currentRow){
-    MYBOOKS->Resource_mtx.lock();
+    //MYBOOKS->Resource_mtx.lock();
     _my_current_book=(*MYBOOKS->Resource)[currentRow];
-    MYBOOKS->Resource_mtx.unlock();
+    //MYBOOKS->Resource_mtx.unlock();
 }
 void MainWindow::on_tabWidget_currentChanged(int index){
     qDebug()<<"Zmiana";
@@ -196,7 +196,7 @@ void MainWindow::on_tabWidget_currentChanged(int index){
         _socket->Resource->waitForReadyRead();
         bool end=false;
         QStringList list;
-        while(!end){
+        while(_socket->Resource->canReadLine()){
             QString Line=_socket->Resource->readLine().trimmed();
             auto Command=Line.split('|');
             if(Command[0]=="CONTENT"){
@@ -209,7 +209,7 @@ void MainWindow::on_tabWidget_currentChanged(int index){
                     book.Name=Command[2];
                     book.Author=Command[3];
                     book.Date=Command[4];
-                    if(Command[5]=="AVAILABLE")
+                    if(Command[5]=="TRUE")
                         book.State=BookState::Available;
                     else
                         book.State=BookState::Unavailable;

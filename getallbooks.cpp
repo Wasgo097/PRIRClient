@@ -36,7 +36,7 @@ void GetAllBooks::run(){
                 book.Name=Command[2];
                 book.Author=Command[3];
                 book.Date=Command[4];
-                if(Command[5]=="AVAILABLE")
+                if(Command[5]=="TRUE")
                     book.State=BookState::Available;
                 else
                     book.State=BookState::Unavailable;
