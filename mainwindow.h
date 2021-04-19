@@ -3,11 +3,14 @@
 #include <memory>
 #include <vector>
 #include <QMainWindow>
+#include <QTimer>
 #include "Utilities.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 class QTcpSocket;
+class GetAllBooks;
 class MainWindow : public QMainWindow{
     Q_OBJECT
 public:
@@ -27,14 +30,16 @@ private slots:
     void on_reg_clicked();
     void on_allbooks_currentRowChanged(int currentRow);
     void on_mybooks_currentRowChanged(int currentRow);
-
+    void get_all_books();
 private:
     std::mutex ui_mtx;
     Ui::MainWindow *ui;
+    QTimer _get_all_books_timer;
     std::shared_ptr<ThreadingResources<QTcpSocket>> _socket;
     std::shared_ptr<ThreadingResourcesLight<UserState>> _state;
     std::shared_ptr<ThreadingResourcesLight<UserData>> _user;
     Book _current_book;
     Book _my_current_book;
+    GetAllBooks * _get_all_books_thread=nullptr;
 };
 #endif // MAINWINDOW_H

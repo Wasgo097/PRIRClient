@@ -12,7 +12,7 @@ void GetAllBooks::run(){
     Window->ALLBOOOKS->Resource_mtx.lock();
     Window->clear_all_books();
     Window->ALLBOOOKS->Resource->clear();
-    std::string mess="CONTENT|ALLBOOKS";
+    std::string mess="CONTENT|ALLBOOKS\r\n";
     _socket->Resource->write(mess.c_str());
     _socket->Resource->waitForBytesWritten();
     bool end=false;
@@ -35,7 +35,6 @@ void GetAllBooks::run(){
                     book.State=BookState::Available;
                 else
                     book.State=BookState::Unavailable;
-                Window->ALLBOOOKS->Resource_mtx.lock();
                 Window->ALLBOOOKS->Resource->push_back(book);
                 list.append(book.ToQStr());
             }
