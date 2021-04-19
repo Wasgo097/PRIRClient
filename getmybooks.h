@@ -2,7 +2,7 @@
 #define GETMYBOOKS_H
 
 #include "mytask.h"
-
+#include <QTimer>
 class GetMyBooks : public MyTask{
     Q_OBJECT
 public:

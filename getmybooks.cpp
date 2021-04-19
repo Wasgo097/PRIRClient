@@ -12,7 +12,7 @@ void GetMyBooks::run(){
     Window->MYBOOKS->Resource_mtx.lock();
     Window->clear_my_books();
     Window->MYBOOKS->Resource->clear();
-    std::string mess="CONTENT|MYBOOKS\r\n";
+    std::string mess="CONTENT|MYBOOKS";
     _socket->Resource->write(mess.c_str());
     _socket->Resource->waitForBytesWritten();
     bool end=false;

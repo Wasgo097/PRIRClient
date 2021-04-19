@@ -30,7 +30,8 @@ private slots:
     void on_reg_clicked();
     void on_allbooks_currentRowChanged(int currentRow);
     void on_mybooks_currentRowChanged(int currentRow);
-    void get_all_books();
+    void on_tabWidget_currentChanged(int index);
+
 private:
     std::mutex ui_mtx;
     Ui::MainWindow *ui;
@@ -40,6 +41,5 @@ private:
     std::shared_ptr<ThreadingResourcesLight<UserData>> _user;
     Book _current_book;
     Book _my_current_book;
-    GetAllBooks * _get_all_books_thread=nullptr;
 };
 #endif // MAINWINDOW_H

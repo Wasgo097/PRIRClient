@@ -61,8 +61,8 @@ const Book MainWindow::get_current_my_book() const{
     return _my_current_book;
 }
 void MainWindow::on_login_clicked(){
-    _state->Resourc_mtx.lock();
-    _socket->Resource_mtx.lock();
+//    _state->Resourc_mtx.lock();
+//    _socket->Resource_mtx.lock();
     if(_state->Resource==UserState::Logged){
         QMessageBox msg(this);
         msg.setIcon(QMessageBox::Warning);
@@ -83,8 +83,6 @@ void MainWindow::on_login_clicked(){
             auto list=read.split('|');
             if(list.count()==2&&list[0]=="LOG"&&list[1]=="TRUE"){
                 _state->Resource=UserState::Logged;
-                connect(&_get_all_books_timer,&QTimer::timeout,this,&MainWindow::get_all_books);
-                _get_all_books_timer.start(3000);
                 QMessageBox msg(this);
                 msg.setIcon(QMessageBox::Information);
                 msg.setText("Poprawnie zalogowano");
@@ -116,30 +114,25 @@ void MainWindow::on_login_clicked(){
     else{
         qDebug()<<"Socket nie polaczony";
     }
-    _state->Resourc_mtx.unlock();
-    _socket->Resource_mtx.unlock();
+//    _state->Resourc_mtx.unlock();
+//    _socket->Resource_mtx.unlock();
 }
 void MainWindow::on_reg_clicked(){
     _state->Resourc_mtx.lock();
+    _socket->Resource_mtx.lock();
     if(_state->Resource==UserState::Unconnected){
         qDebug()<<"Socket nie polaczony";
     }
     else if(_state->Resource==UserState::Connected){
-        _socket->Resource_mtx.lock();
         string login=ui->regname->text().toStdString();
         string password=ui->regpass->text().toStdString();
-        string fullmess="REG|"+login+"|"+password+"\r\n";
+        string fullmess="REG|"+login+"|"+password;
         _socket->Resource->write(fullmess.c_str());
         _socket->Resource->waitForBytesWritten();
         if(_socket->Resource->waitForReadyRead()){
             QString read=_socket->Resource->readLine().trimmed();
             auto list=read.split('|');
             if(list.count()==2&&list[0]=="REG"&&list[1]=="TRUE"){
-                _user->Resourc_mtx.lock();
-                _state->Resource=UserState::Logged;
-                _user->Resource.login=login;
-                _user->Resource.password=password;
-                _user->Resourc_mtx.unlock();
                 QMessageBox msg(this);
                 msg.setIcon(QMessageBox::Information);
                 msg.setText("Poprawnie zarejestrowano");
@@ -167,7 +160,6 @@ void MainWindow::on_reg_clicked(){
             msg.setStandardButtons(QMessageBox::Ok);
             msg.exec();
         }
-        _socket->Resource_mtx.unlock();
     }
     else{
         QMessageBox msg(this);
@@ -179,6 +171,7 @@ void MainWindow::on_reg_clicked(){
         msg.exec();
     }
     _state->Resourc_mtx.unlock();
+    _socket->Resource_mtx.unlock();
 }
 void MainWindow::on_allbooks_currentRowChanged(int currentRow){
     ALLBOOOKS->Resource_mtx.lock();
@@ -190,17 +183,46 @@ void MainWindow::on_mybooks_currentRowChanged(int currentRow){
     _my_current_book=(*MYBOOKS->Resource)[currentRow];
     MYBOOKS->Resource_mtx.unlock();
 }
-void MainWindow::get_all_books(){
-    qDebug()<<"Timer";
-    if(_get_all_books_thread==nullptr){
-        _get_all_books_thread=new GetAllBooks(this,_socket,_state,_user);
+void MainWindow::on_tabWidget_currentChanged(int index){
+    qDebug()<<"Zmiana";
+    if(index==1){
+        //_socket->Resource_mtx.lock();
+       // Window->ALLBOOOKS->Resource_mtx.lock();
+        this->clear_all_books();
+        this->ALLBOOOKS->Resource->clear();
+        std::string mess="CONTENT|ALLBOOKS";
+        _socket->Resource->write(mess.c_str());
+        _socket->Resource->waitForBytesWritten();
+        _socket->Resource->waitForReadyRead();
+        bool end=false;
+        QStringList list;
+        while(!end){
+            QString Line=_socket->Resource->readLine().trimmed();
+            auto Command=Line.split('|');
+            if(Command[0]=="CONTENT"){
+                if(Command[1]=="END"){
+                    end=true;
+                }
+                else{
+                    Book book;
+                    book.Id=Command[1];
+                    book.Name=Command[2];
+                    book.Author=Command[3];
+                    book.Date=Command[4];
+                    if(Command[5]=="AVAILABLE")
+                        book.State=BookState::Available;
+                    else
+                        book.State=BookState::Unavailable;
+                    this->ALLBOOOKS->Resource->push_back(book);
+                    list.append(book.ToQStr());
+                }
+            }
+        }
+        this->fill_all_books(list);
+        //_socket->Resource_mtx.unlock();
+        //Window->ALLBOOOKS->Resource_mtx.unlock();
     }
-    else if(_get_all_books_thread->isFinished()){
-        delete _get_all_books_thread;
-        _get_all_books_thread=new GetAllBooks(this,_socket,_state,_user);
+    else if (index==2){
+
     }
-    else if(_get_all_books_thread->isRunning()){
-        return;
-    }
-    _get_all_books_thread->start();
 }

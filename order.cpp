@@ -9,7 +9,7 @@ Order::Order(MainWindow *Window,
 void Order::run(){
     _socket->Resource_mtx.lock();
     QString current_book_id=Window->get_current_book().Id;
-    std::string mess="ORDER|"+current_book_id.toStdString()+"\r\n";
+    std::string mess="ORDER|"+current_book_id.toStdString();
     _socket->Resource->write(mess.c_str());
     _socket->Resource->waitForBytesWritten();
     _socket->Resource->waitForReadyRead();

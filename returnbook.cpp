@@ -9,7 +9,7 @@ ReturnBook::ReturnBook(MainWindow *Window,
 void ReturnBook::run(){
     _socket->Resource_mtx.lock();
     QString current_my_book_id=Window->get_current_my_book().Id;
-    std::string mess="RETURN|"+current_my_book_id.toStdString()+"\r\n";
+    std::string mess="RETURN|"+current_my_book_id.toStdString();
     _socket->Resource->write(mess.c_str());
     _socket->Resource->waitForBytesWritten();
     _socket->Resource->waitForReadyRead();
