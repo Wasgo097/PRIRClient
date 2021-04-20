@@ -31,7 +31,10 @@ private slots:
     void on_allbooks_currentRowChanged(int currentRow);
     void on_mybooks_currentRowChanged(int currentRow);
     void on_tabWidget_currentChanged(int index);
-
+public slots:
+    void read_allbooks();
+    void read_mybooks();
+    void sent_data(QString data);
 private:
     std::mutex ui_mtx;
     Ui::MainWindow *ui;

@@ -14,10 +14,8 @@ public:
     ~GetAllBooks();
 protected:
     virtual void run()override;
-private:
-   // QTimer * Timer=nullptr;
-private slots:
-    void timeout();
+signals:
+    void sent_data(QString data);
 };
 
 #endif // GETALLBOOKS_H

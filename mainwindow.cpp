@@ -25,6 +25,25 @@ MainWindow::MainWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::MainWindo
         ALLBOOOKS->Resource=std::shared_ptr<std::vector<Book>>(new std::vector<Book>);
         MYBOOKS=std::shared_ptr<ThreadingResources<std::vector<Book>>>(new ThreadingResources<std::vector<Book>>);
         MYBOOKS->Resource=std::shared_ptr<std::vector<Book>>(new std::vector<Book>);
+        ///temp
+        string fullmess="LOG|kpaluch|qwerty";
+        _socket->Resource->write(fullmess.c_str());
+        _socket->Resource->waitForBytesWritten();
+        if(_socket->Resource->waitForReadyRead()){
+            QString read=_socket->Resource->readLine().trimmed();
+            auto list=read.split('|');
+            if(list.count()==2&&list[0]=="LOG"&&list[1]=="TRUE"){
+                _state->Resource=UserState::Logged;
+                QMessageBox msg(this);
+                msg.setIcon(QMessageBox::Information);
+                msg.setText("Poprawnie zalogowano");
+                msg.setWindowTitle("Proces logowania");
+                msg.setDetailedText("Witamy w systemie bibliotecznym firmy XYZ");
+                msg.setStandardButtons(QMessageBox::Ok);
+                msg.exec();
+            }
+        }
+        //////
     }
     else{
         _state->Resource=UserState::Unconnected;
@@ -175,54 +194,94 @@ void MainWindow::on_reg_clicked(){
 }
 void MainWindow::on_allbooks_currentRowChanged(int currentRow){
     //ALLBOOOKS->Resource_mtx.lock();
-    _current_book=(*ALLBOOOKS->Resource)[currentRow];
+    //_current_book=(*ALLBOOOKS->Resource)[currentRow];
     //ALLBOOOKS->Resource_mtx.unlock();
 }
 void MainWindow::on_mybooks_currentRowChanged(int currentRow){
     //MYBOOKS->Resource_mtx.lock();
-    _my_current_book=(*MYBOOKS->Resource)[currentRow];
+   // _my_current_book=(*MYBOOKS->Resource)[currentRow];
     //MYBOOKS->Resource_mtx.unlock();
 }
 void MainWindow::on_tabWidget_currentChanged(int index){
-    qDebug()<<"Zmiana";
-    if(index==1){
-        //_socket->Resource_mtx.lock();
-       // Window->ALLBOOOKS->Resource_mtx.lock();
-        this->clear_all_books();
-        this->ALLBOOOKS->Resource->clear();
-        std::string mess="CONTENT|ALLBOOKS";
-        _socket->Resource->write(mess.c_str());
-        _socket->Resource->waitForBytesWritten();
-        _socket->Resource->waitForReadyRead();
-        bool end=false;
-        QStringList list;
-        while(_socket->Resource->canReadLine()){
-            QString Line=_socket->Resource->readLine().trimmed();
-            auto Command=Line.split('|');
-            if(Command[0]=="CONTENT"){
-                if(Command[1]=="END"){
-                    end=true;
+    if(_state->Resource==UserState::Logged){
+        if(index==1){
+            ALLBOOOKS->Resource->clear();
+            clear_all_books();
+            std::string mess="CONTENT|ALLBOOKS";
+            _socket->Resource->write(mess.c_str());
+            _socket->Resource->waitForBytesWritten();
+            QStringList list;
+            bool end=false;
+            while(_socket->Resource->waitForReadyRead()){
+                QString Line=_socket->Resource->readLine().trimmed();
+                auto Command=Line.split('|');
+                if(Command[0]=="CONTENT"){
+                    if(Command[1]=="END"){
+                       end=true;
+                       break;
+                    }
+                    else{
+                        Book book;
+                        book.Id=Command[1];
+                        book.Name=Command[2];
+                        book.Author=Command[3];
+                        book.Date=Command[4];
+                        if(Command[5]=="TRUE")
+                            book.State=BookState::Available;
+                        else
+                            book.State=BookState::Unavailable;
+                        ALLBOOOKS->Resource->push_back(book);
+                        list.append(book.ToQStr());
+                    }
                 }
-                else{
-                    Book book;
-                    book.Id=Command[1];
-                    book.Name=Command[2];
-                    book.Author=Command[3];
-                    book.Date=Command[4];
-                    if(Command[5]=="TRUE")
-                        book.State=BookState::Available;
-                    else
-                        book.State=BookState::Unavailable;
-                    this->ALLBOOOKS->Resource->push_back(book);
-                    list.append(book.ToQStr());
-                }
+                else
+                    break;
+            }
+            fill_all_books(list);
+        }
+        else if (index==2){
+        }
+    }
+}
+void MainWindow::read_allbooks(){
+    _socket->Resource_mtx.lock();
+    ALLBOOOKS->Resource_mtx.lock();
+    QStringList list;
+    //bool end=false;
+    while(_socket->Resource->canReadLine()){
+        QString Line=_socket->Resource->readLine().trimmed();
+        auto Command=Line.split('|');
+        if(Command[0]=="CONTENT"){
+            if(Command[1]=="END"){
+               //end=true;
+               break;
+            }
+            else{
+                Book book;
+                book.Id=Command[1];
+                book.Name=Command[2];
+                book.Author=Command[3];
+                book.Date=Command[4];
+                if(Command[5]=="TRUE")
+                    book.State=BookState::Available;
+                else
+                    book.State=BookState::Unavailable;
+                ALLBOOOKS->Resource->push_back(book);
+                list.append(book.ToQStr());
             }
         }
-        this->fill_all_books(list);
-        //_socket->Resource_mtx.unlock();
-        //Window->ALLBOOOKS->Resource_mtx.unlock();
+        else
+            break;
     }
-    else if (index==2){
+    fill_all_books(list);
+    _socket->Resource_mtx.unlock();
+    ALLBOOOKS->Resource_mtx.unlock();
+    disconnect(_socket->Resource.get(),&QTcpSocket::readyRead,this,&MainWindow::read_allbooks);
+}
+void MainWindow::read_mybooks(){
 
-    }
+}
+void MainWindow::sent_data(QString data){
+    _socket->Resource->write(data.toStdString().c_str());
+    _socket->Resource->waitForBytesWritten();
 }
