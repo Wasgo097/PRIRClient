@@ -193,17 +193,24 @@ void MainWindow::on_reg_clicked(){
 //    _socket->Resource_mtx.unlock();
 }
 void MainWindow::on_allbooks_currentRowChanged(int currentRow){
-    //ALLBOOOKS->Resource_mtx.lock();
-    //_current_book=(*ALLBOOOKS->Resource)[currentRow];
-    //ALLBOOOKS->Resource_mtx.unlock();
+    if(currentRow>=0){
+        qDebug()<<"Zmiana all books "<<currentRow<<" "<<(*ALLBOOOKS->Resource)[currentRow].ToQStr();
+        //ALLBOOOKS->Resource_mtx.lock();
+        //_current_book=(*ALLBOOOKS->Resource)[currentRow];
+        //ALLBOOOKS->Resource_mtx.unlock();
+    }
 }
 void MainWindow::on_mybooks_currentRowChanged(int currentRow){
-    //MYBOOKS->Resource_mtx.lock();
-   // _my_current_book=(*MYBOOKS->Resource)[currentRow];
-    //MYBOOKS->Resource_mtx.unlock();
+    if(currentRow>=0){
+        qDebug()<<"Zmiana my books "<<currentRow<<" "<<(*MYBOOKS->Resource)[currentRow].ToQStr();
+        //MYBOOKS->Resource_mtx.lock();
+        //_my_current_book=(*MYBOOKS->Resource)[currentRow];
+        //MYBOOKS->Resource_mtx.unlock();
+    }
 }
 void MainWindow::on_tabWidget_currentChanged(int index){
     if(_state->Resource==UserState::Logged){
+        qDebug()<<"Zmiana";
         if(index==1){
             ALLBOOOKS->Resource->clear();
             clear_all_books();
@@ -211,13 +218,13 @@ void MainWindow::on_tabWidget_currentChanged(int index){
             _socket->Resource->write(mess.c_str());
             _socket->Resource->waitForBytesWritten();
             QStringList list;
-            bool end=false;
-            while(_socket->Resource->waitForReadyRead()){
+            //bool end=false;
+            while(_socket->Resource->waitForReadyRead(2000)){
                 QString Line=_socket->Resource->readLine().trimmed();
                 auto Command=Line.split('|');
                 if(Command[0]=="CONTENT"){
                     if(Command[1]=="END"){
-                       end=true;
+                       //end=true;
                        break;
                     }
                     else{
@@ -231,7 +238,7 @@ void MainWindow::on_tabWidget_currentChanged(int index){
                         else
                             book.State=BookState::Unavailable;
                         ALLBOOOKS->Resource->push_back(book);
-                        list.append(book.ToQStr());
+                        list.append(book.ToQStrPl());
                     }
                 }
                 else
@@ -240,43 +247,40 @@ void MainWindow::on_tabWidget_currentChanged(int index){
             fill_all_books(list);
         }
         else if (index==2){
+            MYBOOKS->Resource->clear();
+            clear_my_books();
+            std::string mess="CONTENT|MYBOOKS";
+            _socket->Resource->write(mess.c_str());
+            _socket->Resource->waitForBytesWritten();
+            //bool end=false;
+            QStringList list;
+            while(_socket->Resource->waitForReadyRead(2000)){
+                QString Line=_socket->Resource->readLine().trimmed();
+                auto Command=Line.split('|');
+                if(Command[0]=="CONTENT"){
+                    if(Command[1]=="END"){
+                        //end=true;
+                        break;
+                    }
+                    else{
+                        Book book;
+                        book.Id=Command[1];
+                        book.Name=Command[2];
+                        book.Author=Command[3];
+                        book.Date=Command[4];
+                        MYBOOKS->Resource->push_back(book);
+                        list.append(book.ToQStr());
+                    }
+                }
+                else
+                    break;
+            }
+            fill_my_books(list);
         }
     }
 }
 void MainWindow::read_allbooks(){
-    _socket->Resource_mtx.lock();
-    ALLBOOOKS->Resource_mtx.lock();
-    QStringList list;
-    //bool end=false;
-    while(_socket->Resource->canReadLine()){
-        QString Line=_socket->Resource->readLine().trimmed();
-        auto Command=Line.split('|');
-        if(Command[0]=="CONTENT"){
-            if(Command[1]=="END"){
-               //end=true;
-               break;
-            }
-            else{
-                Book book;
-                book.Id=Command[1];
-                book.Name=Command[2];
-                book.Author=Command[3];
-                book.Date=Command[4];
-                if(Command[5]=="TRUE")
-                    book.State=BookState::Available;
-                else
-                    book.State=BookState::Unavailable;
-                ALLBOOOKS->Resource->push_back(book);
-                list.append(book.ToQStr());
-            }
-        }
-        else
-            break;
-    }
-    fill_all_books(list);
-    _socket->Resource_mtx.unlock();
-    ALLBOOOKS->Resource_mtx.unlock();
-    disconnect(_socket->Resource.get(),&QTcpSocket::readyRead,this,&MainWindow::read_allbooks);
+
 }
 void MainWindow::read_mybooks(){
 
@@ -284,4 +288,10 @@ void MainWindow::read_mybooks(){
 void MainWindow::sent_data(QString data){
     _socket->Resource->write(data.toStdString().c_str());
     _socket->Resource->waitForBytesWritten();
+}
+void MainWindow::on_btn_return_clicked(){
+
+}
+void MainWindow::on_btn_orderorreserve_clicked(){
+
 }

@@ -14,6 +14,7 @@ public:
            std::shared_ptr<ThreadingResources<QTcpSocket>> socket,
            std::shared_ptr<ThreadingResourcesLight<UserState>> state,
            std::shared_ptr<ThreadingResourcesLight<UserData>> user);
+    virtual ~MyTask(){}
 protected:
     MainWindow * Window;
     std::shared_ptr<ThreadingResources<QTcpSocket>> _socket;

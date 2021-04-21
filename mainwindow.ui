@@ -160,6 +160,19 @@
        </rect>
       </property>
      </widget>
+     <widget class="QPushButton" name="btn_orderorreserve">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>440</y>
+        <width>111</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Zamów/zarezerwuj</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_5">
      <attribute name="title">
@@ -173,6 +186,19 @@
         <width>721</width>
         <height>311</height>
        </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btn_return">
+      <property name="geometry">
+       <rect>
+        <x>340</x>
+        <y>430</y>
+        <width>80</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Zwróć</string>
       </property>
      </widget>
     </widget>

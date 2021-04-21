@@ -31,6 +31,10 @@ private slots:
     void on_allbooks_currentRowChanged(int currentRow);
     void on_mybooks_currentRowChanged(int currentRow);
     void on_tabWidget_currentChanged(int index);
+    void on_btn_return_clicked();
+
+    void on_btn_orderorreserve_clicked();
+
 public slots:
     void read_allbooks();
     void read_mybooks();

@@ -46,6 +46,14 @@ struct Book{
         else
             return Id+" "+Name+" "+Author+" "+Date;
     }
+    QString ToQStrPl(){
+        if(State==BookState::Available)
+            return Id+" "+Name+" "+Author+" "+Date+" Dostepne";
+        else if(State==BookState::Unavailable)
+            return Id+" "+Name+" "+Author+" "+Date+" Niedostepne";
+        else
+            return Id+" "+Name+" "+Author+" "+Date;
+    }
 };
 
 #endif // UTILITIES_H
