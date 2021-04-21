@@ -20,8 +20,6 @@ public:
     void clear_my_books();
     void fill_all_books(const QStringList & List);
     void fill_my_books(const QStringList & List);
-    const Book get_current_book()const;
-    const Book get_current_my_book()const;
 public:
     std::shared_ptr<ThreadingResources<std::vector<Book>>> MYBOOKS;
     std::shared_ptr<ThreadingResources<std::vector<Book>>> ALLBOOOKS;
@@ -32,12 +30,8 @@ private slots:
     void on_mybooks_currentRowChanged(int currentRow);
     void on_tabWidget_currentChanged(int index);
     void on_btn_return_clicked();
-
     void on_btn_orderorreserve_clicked();
-
 public slots:
-    void read_allbooks();
-    void read_mybooks();
     void sent_data(QString data);
 private:
     std::mutex ui_mtx;
@@ -46,7 +40,7 @@ private:
     std::shared_ptr<ThreadingResources<QTcpSocket>> _socket;
     std::shared_ptr<ThreadingResourcesLight<UserState>> _state;
     std::shared_ptr<ThreadingResourcesLight<UserData>> _user;
-    Book _current_book;
-    Book _my_current_book;
+    Book * _selected_book=nullptr;
+    Book *_selected_my_book=nullptr;
 };
 #endif // MAINWINDOW_H

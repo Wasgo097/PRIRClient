@@ -73,15 +73,7 @@ void MainWindow::fill_my_books(const QStringList &List){
     ui->mybooks->addItems(List);
     //ui_mtx.unlock();
 }
-const Book MainWindow::get_current_book()const{
-    return _current_book;
-}
-const Book MainWindow::get_current_my_book() const{
-    return _my_current_book;
-}
 void MainWindow::on_login_clicked(){
-//    _state->Resourc_mtx.lock();
-//    _socket->Resource_mtx.lock();
     if(_state->Resource==UserState::Logged){
         QMessageBox msg(this);
         msg.setIcon(QMessageBox::Warning);
@@ -133,12 +125,8 @@ void MainWindow::on_login_clicked(){
     else{
         qDebug()<<"Socket nie polaczony";
     }
-//    _state->Resourc_mtx.unlock();
-//    _socket->Resource_mtx.unlock();
 }
 void MainWindow::on_reg_clicked(){
-//    _state->Resourc_mtx.lock();
-//    _socket->Resource_mtx.lock();
     if(_state->Resource==UserState::Unconnected){
         qDebug()<<"Socket nie polaczony";
     }
@@ -189,28 +177,32 @@ void MainWindow::on_reg_clicked(){
         msg.setStandardButtons(QMessageBox::Ok);
         msg.exec();
     }
-//    _state->Resourc_mtx.unlock();
-//    _socket->Resource_mtx.unlock();
 }
 void MainWindow::on_allbooks_currentRowChanged(int currentRow){
     if(currentRow>=0){
         qDebug()<<"Zmiana all books "<<currentRow<<" "<<(*ALLBOOOKS->Resource)[currentRow].ToQStr();
         //ALLBOOOKS->Resource_mtx.lock();
-        //_current_book=(*ALLBOOOKS->Resource)[currentRow];
+        _selected_book=&(*ALLBOOOKS->Resource)[currentRow];
         //ALLBOOOKS->Resource_mtx.unlock();
     }
+    else
+        _selected_book=nullptr;
 }
 void MainWindow::on_mybooks_currentRowChanged(int currentRow){
     if(currentRow>=0){
         qDebug()<<"Zmiana my books "<<currentRow<<" "<<(*MYBOOKS->Resource)[currentRow].ToQStr();
         //MYBOOKS->Resource_mtx.lock();
-        //_my_current_book=(*MYBOOKS->Resource)[currentRow];
+        _selected_my_book=&(*MYBOOKS->Resource)[currentRow];
         //MYBOOKS->Resource_mtx.unlock();
     }
+    else
+        _selected_my_book=nullptr;
 }
 void MainWindow::on_tabWidget_currentChanged(int index){
     if(_state->Resource==UserState::Logged){
         qDebug()<<"Zmiana";
+        _selected_book=nullptr;
+        _selected_my_book=nullptr;
         if(index==1){
             ALLBOOOKS->Resource->clear();
             clear_all_books();
@@ -218,13 +210,11 @@ void MainWindow::on_tabWidget_currentChanged(int index){
             _socket->Resource->write(mess.c_str());
             _socket->Resource->waitForBytesWritten();
             QStringList list;
-            //bool end=false;
             while(_socket->Resource->waitForReadyRead(2000)){
                 QString Line=_socket->Resource->readLine().trimmed();
                 auto Command=Line.split('|');
                 if(Command[0]=="CONTENT"){
                     if(Command[1]=="END"){
-                       //end=true;
                        break;
                     }
                     else{
@@ -252,14 +242,12 @@ void MainWindow::on_tabWidget_currentChanged(int index){
             std::string mess="CONTENT|MYBOOKS";
             _socket->Resource->write(mess.c_str());
             _socket->Resource->waitForBytesWritten();
-            //bool end=false;
             QStringList list;
             while(_socket->Resource->waitForReadyRead(2000)){
                 QString Line=_socket->Resource->readLine().trimmed();
                 auto Command=Line.split('|');
                 if(Command[0]=="CONTENT"){
                     if(Command[1]=="END"){
-                        //end=true;
                         break;
                     }
                     else{
@@ -279,19 +267,78 @@ void MainWindow::on_tabWidget_currentChanged(int index){
         }
     }
 }
-void MainWindow::read_allbooks(){
-
-}
-void MainWindow::read_mybooks(){
-
-}
 void MainWindow::sent_data(QString data){
     _socket->Resource->write(data.toStdString().c_str());
     _socket->Resource->waitForBytesWritten();
 }
 void MainWindow::on_btn_return_clicked(){
-
+    if(_selected_my_book!=nullptr){
+        std::string mess="RETURN|"+_selected_my_book->Id.toStdString();
+        _socket->Resource->write(mess.c_str());
+        _socket->Resource->waitForBytesWritten();
+        if(_socket->Resource->waitForReadyRead()){
+            QString line=_socket->Resource->readLine().trimmed();
+            auto list=line.split('|');
+            if(list[0]=="RETURN"){
+                if(list[1]=="TRUE"){
+                    qDebug()<<"Udalo sie oddac ksiazke, odsiwez zakladki";
+                }
+                //false or other
+                else{
+                    qDebug()<<"Nie udalo sie oddac, odswiez zakladki";
+                }
+            }
+            //first element isnt return
+            else{
+                qDebug()<<"Blad podczas oddawania";
+            }
+        }
+        //socket cant read
+        else{
+            qDebug()<<"serwer nie odpowiada";
+        }
+    }
+    else{
+        qDebug()<<"Wybierz ksiazke do oddania";
+    }
 }
 void MainWindow::on_btn_orderorreserve_clicked(){
-
+    if(_selected_book!=nullptr){
+        if(_selected_book->State==BookState::Available){
+            std::string mess="ORDER|"+_selected_book->Id.toStdString();
+            _socket->Resource->write(mess.c_str());
+            _socket->Resource->waitForBytesWritten();
+            if(_socket->Resource->waitForReadyRead()){
+                QString line=_socket->Resource->readLine().trimmed();
+                auto list=line.split('|');
+                if(list[0]=="ORDER"){
+                    if(list[1]=="TRUE"){
+                        qDebug()<<"Udalo sie zamowic ksiazke, odsiez zakladki";
+                    }
+                    //false or other
+                    else{
+                        qDebug()<<"Nie udalo sie zamowic ksiazke,odswiez zakladki";
+                    }
+                }
+                //first element isnt order
+                else{
+                    qDebug()<<"Blad podczas zamawiania";
+                }
+            }
+            //socket cant read
+            else{
+                qDebug()<<"serwer nie odpowiada";
+            }
+        }
+        //unavailable
+        else{
+            std::string mess="RESERVE|"+_selected_book->Id.toStdString();
+            _socket->Resource->write(mess.c_str());
+            qDebug()<<"Wyslano żądanie rezerwacji, poczekaj na swoja kolej";
+        }
+    }
+    //selectedbook==nulltptr
+    else{
+        qDebug()<<"Wybierz ksiazke do zamowienia/rezerwacji";
+    }
 }
