@@ -21,7 +21,14 @@ MainWindow::MainWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::MainWindo
     _socket->Resource->connectToHost(QString("127.0.0.1"),7654);
     if(_socket->Resource->waitForConnected()){
         _state->Resource=UserState::Connected;
-        qDebug()<<"Polaczono";
+        //qDebug()<<"Polaczono";
+        QMessageBox msg(this);
+        msg.setIcon(QMessageBox::Information);
+        msg.setText("Udało sie połączyć z serwerem");
+        msg.setWindowTitle("Stan połączenia");
+        //msg.setDetailedText("Wyłącz aplikacje i upewnij się że serwer działa");
+        msg.setStandardButtons(QMessageBox::Ok);
+        msg.exec();
         ALLBOOOKS=std::shared_ptr<ThreadingResources<std::vector<Book>>>(new ThreadingResources<std::vector<Book>>);
         ALLBOOOKS->Resource=std::shared_ptr<std::vector<Book>>(new std::vector<Book>);
         MYBOOKS=std::shared_ptr<ThreadingResources<std::vector<Book>>>(new ThreadingResources<std::vector<Book>>);
@@ -47,8 +54,14 @@ MainWindow::MainWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::MainWindo
 #endif
     }
     else{
-        _state->Resource=UserState::Unconnected;
-        qDebug()<<"Nie polaczono";
+        _state->Resource=UserState::Unconnected;        
+        QMessageBox msg(this);
+        msg.setIcon(QMessageBox::Warning);
+        msg.setText("Nie udało sie połączyć z serwerem");
+        msg.setWindowTitle("Stan połączenia");
+        msg.setDetailedText("Wyłącz aplikacje i upewnij się że serwer działa");
+        msg.setStandardButtons(QMessageBox::Ok);
+        msg.exec();
     }
 }
 MainWindow::~MainWindow(){
@@ -128,14 +141,17 @@ void MainWindow::on_login_clicked(){
         }
     }
     else{
-        qDebug()<<"Socket nie polaczony";
+        QMessageBox msg(this);
+        msg.setIcon(QMessageBox::Warning);
+        msg.setText("Nie udało sie połączyć z serwerem");
+        msg.setWindowTitle("Błąd połączenia");
+        msg.setDetailedText("Wyłącz aplikacje i upewnij się że serwer działa");
+        msg.setStandardButtons(QMessageBox::Ok);
+        msg.exec();
     }
 }
 void MainWindow::on_reg_clicked(){
-    if(_state->Resource==UserState::Unconnected){
-        qDebug()<<"Socket nie polaczony";
-    }
-    else if(_state->Resource==UserState::Connected){
+    if(_state->Resource==UserState::Connected){
         string login=ui->regname->text().toStdString();
         string password=ui->regpass->text().toStdString();
         string fullmess="REG|"+login+"|"+password;
@@ -175,12 +191,21 @@ void MainWindow::on_reg_clicked(){
             msg.exec();
         }
     }
-    else{
+    else if(_state->Resource==UserState::Logged){
         QMessageBox msg(this);
         msg.setIcon(QMessageBox::Warning);
         msg.setText("Jesteś zalogowany");
         msg.setWindowTitle("Błąd rejestracji");
         msg.setDetailedText("Wyloguj się");
+        msg.setStandardButtons(QMessageBox::Ok);
+        msg.exec();
+    }
+    else{
+        QMessageBox msg(this);
+        msg.setIcon(QMessageBox::Warning);
+        msg.setText("Nie udało sie połączyć z serwerem");
+        msg.setWindowTitle("Błąd połączenia");
+        msg.setDetailedText("Wyłącz aplikacje i upewnij się że serwer działa");
         msg.setStandardButtons(QMessageBox::Ok);
         msg.exec();
     }
@@ -207,7 +232,7 @@ void MainWindow::on_mybooks_currentRowChanged(int currentRow){
 }
 void MainWindow::on_tabWidget_currentChanged(int index){
     if(_state->Resource==UserState::Logged){
-        qDebug()<<"Zmiana";
+        //qDebug()<<"Zmiana";
         _selected_book=nullptr;
         _selected_my_book=nullptr;
         ALLBOOOKS->Resource->clear();
@@ -288,25 +313,58 @@ void MainWindow::on_btn_return_clicked(){
             auto list=line.split('|');
             if(list[0]=="RETURN"){
                 if(list[1]=="TRUE"){
-                    qDebug()<<"Udalo sie oddac ksiazke, odsiwez zakladki";
+                    //qDebug()<<"Udalo sie oddac ksiazke, odsiwez zakladki";
+                    QMessageBox msg(this);
+                    msg.setIcon(QMessageBox::Information);
+                    msg.setText("Udalo sie oddac ksiazke, odśwież zakladki");
+                    msg.setWindowTitle("Oddanie książki");
+                    //msg.setDetailedText("Przed dokonaniem operacji musisz");
+                    msg.setStandardButtons(QMessageBox::Ok);
+                    msg.exec();
                 }
                 //false or other
                 else{
-                    qDebug()<<"Nie udalo sie oddac, odswiez zakladki";
+                    //qDebug()<<"Nie udalo sie oddac, odswiez zakladki";
+                    QMessageBox msg(this);
+                    msg.setIcon(QMessageBox::Warning);
+                    msg.setText("Nie udalo sie oddac, odswiez zakladki");
+                    msg.setWindowTitle("Oddanie książki");
+                    //msg.setDetailedText("Przed dokonaniem operacji musisz");
+                    msg.setStandardButtons(QMessageBox::Ok);
+                    msg.exec();
                 }
             }
             //first element isnt return
             else{
-                qDebug()<<"Blad podczas oddawania";
+                QMessageBox msg(this);
+                msg.setIcon(QMessageBox::Warning);
+                msg.setText("Serwer nie mógł przetworzyć zapytania");
+                msg.setWindowTitle("Błąd połączenia");
+                msg.setDetailedText("Zresetuj aplikacje");
+                msg.setStandardButtons(QMessageBox::Ok);
+                msg.exec();
             }
         }
         //socket cant read
         else{
-            qDebug()<<"serwer nie odpowiada";
+            //qDebug()<<"serwer nie odpowiada";
+            QMessageBox msg(this);
+            msg.setIcon(QMessageBox::Warning);
+            msg.setText("Serwer nie odpowiada");
+            msg.setWindowTitle("Błąd połączenia");
+            msg.setDetailedText("Zresetuj aplikacje");
+            msg.setStandardButtons(QMessageBox::Ok);
+            msg.exec();
         }
     }
     else{
-        qDebug()<<"Wybierz ksiazke do oddania";
+        QMessageBox msg(this);
+        msg.setIcon(QMessageBox::Information);
+        msg.setText("Wybierz ksiażkę do oddania");
+        msg.setWindowTitle("Brak wybranej książki");
+        msg.setDetailedText("Przed dokonaniem operacji musisz wybrać ksiazke");
+        msg.setStandardButtons(QMessageBox::Ok);
+        msg.exec();
     }
 }
 void MainWindow::on_btn_orderorreserve_clicked(){
@@ -320,32 +378,75 @@ void MainWindow::on_btn_orderorreserve_clicked(){
                 auto list=line.split('|');
                 if(list[0]=="ORDER"){
                     if(list[1]=="TRUE"){
-                        qDebug()<<"Udalo sie zamowic ksiazke, odsiez zakladki";
+                        //qDebug()<<"Udalo sie zamowic ksiazke, odsiez zakladki";
+                        QMessageBox msg(this);
+                        msg.setIcon(QMessageBox::Information);
+                        msg.setText("Udalo sie zamowic ksiazke, odśwież zakladki");
+                        msg.setWindowTitle("Zamawianie książki");
+                        //msg.setDetailedText("Przed dokonaniem operacji musisz");
+                        msg.setStandardButtons(QMessageBox::Ok);
+                        msg.exec();
                     }
                     //false or other
                     else{
-                        qDebug()<<"Nie udalo sie zamowic ksiazke,odswiez zakladki";
+                        //qDebug()<<"Nie udalo sie zamowic ksiazke,odswiez zakladki";
+                        QMessageBox msg(this);
+                        msg.setIcon(QMessageBox::Information);
+                        msg.setText("Nie udalo sie zamowic ksiazki, odsiwez zakladki");
+                        msg.setWindowTitle("Zamawianie książki");
+                        //msg.setDetailedText("Przed dokonaniem operacji musisz");
+                        msg.setStandardButtons(QMessageBox::Ok);
+                        msg.exec();
                     }
                 }
                 //first element isnt order
                 else{
-                    qDebug()<<"Blad podczas zamawiania";
+                    //qDebug()<<"Blad podczas zamawiania";
+                    QMessageBox msg(this);
+                    msg.setIcon(QMessageBox::Warning);
+                    msg.setText("Serwer nie mógł przetworzyć zapytania");
+                    msg.setWindowTitle("Błąd połączenia");
+                    msg.setDetailedText("Zresetuj aplikacje");
+                    msg.setStandardButtons(QMessageBox::Ok);
+                    msg.exec();
                 }
             }
             //socket cant read
             else{
-                qDebug()<<"serwer nie odpowiada";
+                //qDebug()<<"serwer nie odpowiada";
+                QMessageBox msg(this);
+                msg.setIcon(QMessageBox::Warning);
+                msg.setText("Serwer nie odpowiada");
+                msg.setWindowTitle("Błąd połączenia");
+                msg.setDetailedText("Zresetuj aplikacje");
+                msg.setStandardButtons(QMessageBox::Ok);
+                msg.exec();
             }
         }
         //unavailable
         else{
             std::string mess="RESERVE|"+_selected_book->Id.toStdString();
             _socket->Resource->write(mess.c_str());
-            qDebug()<<"Wyslano żądanie rezerwacji, poczekaj na swoja kolej";
+            _socket->Resource->waitForBytesWritten();
+            //qDebug()<<"Wyslano żądanie rezerwacji, poczekaj na swoja kolej";
+            QMessageBox msg(this);
+            msg.setIcon(QMessageBox::Information);
+            msg.setText("Wyslano żądanie rezerwacji, poczekaj na swoja kolej");
+            msg.setWindowTitle("Rezerwacja książki książki");
+            //msg.setDetailedText("Przed dokonaniem operacji musisz");
+            msg.setStandardButtons(QMessageBox::Ok);
+            msg.exec();
         }
     }
     //selectedbook==nulltptr
     else{
-        qDebug()<<"Wybierz ksiazke do zamowienia/rezerwacji";
+        //qDebug()<<"Wybierz ksiazke do zamowienia/rezerwacji";
+        QMessageBox msg(this);
+        msg.setIcon(QMessageBox::Information);
+        msg.setText("Wybierz ksiazke do zamowienia/rezerwacji");
+        msg.setWindowTitle("Brak wybranej książki");
+        msg.setDetailedText("Przed dokonaniem operacji musisz wybrać ksiazke");
+        msg.setStandardButtons(QMessageBox::Ok);
+        msg.exec();
     }
 }
