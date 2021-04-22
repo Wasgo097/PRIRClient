@@ -12,6 +12,7 @@
 #include "reserve.h"
 #include "returnbook.h"
 typedef  std::string string;
+//#define test
 MainWindow::MainWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::MainWindow){
     ui->setupUi(this);
     _state=std::shared_ptr<ThreadingResourcesLight<UserState>>(new ThreadingResourcesLight<UserState>);
@@ -25,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::MainWindo
         ALLBOOOKS->Resource=std::shared_ptr<std::vector<Book>>(new std::vector<Book>);
         MYBOOKS=std::shared_ptr<ThreadingResources<std::vector<Book>>>(new ThreadingResources<std::vector<Book>>);
         MYBOOKS->Resource=std::shared_ptr<std::vector<Book>>(new std::vector<Book>);
-        ///temp
+#ifdef test
         string fullmess="LOG|kpaluch|qwerty";
         _socket->Resource->write(fullmess.c_str());
         _socket->Resource->waitForBytesWritten();
@@ -43,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::MainWindo
                 msg.exec();
             }
         }
-        //////
+#endif
     }
     else{
         _state->Resource=UserState::Unconnected;
@@ -51,6 +52,8 @@ MainWindow::MainWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::MainWindo
     }
 }
 MainWindow::~MainWindow(){
+    _socket->Resource->write("EXIT");
+    _socket->Resource->waitForBytesWritten();
     delete ui;
 }
 void MainWindow::clear_all_books(){
@@ -94,6 +97,8 @@ void MainWindow::on_login_clicked(){
             auto list=read.split('|');
             if(list.count()==2&&list[0]=="LOG"&&list[1]=="TRUE"){
                 _state->Resource=UserState::Logged;
+                ui->loginname->clear();
+                ui->loginpass->clear();
                 QMessageBox msg(this);
                 msg.setIcon(QMessageBox::Information);
                 msg.setText("Poprawnie zalogowano");
@@ -140,6 +145,8 @@ void MainWindow::on_reg_clicked(){
             QString read=_socket->Resource->readLine().trimmed();
             auto list=read.split('|');
             if(list.count()==2&&list[0]=="REG"&&list[1]=="TRUE"){
+                ui->regname->clear();
+                ui->regpass->clear();
                 QMessageBox msg(this);
                 msg.setIcon(QMessageBox::Information);
                 msg.setText("Poprawnie zarejestrowano");
@@ -203,9 +210,11 @@ void MainWindow::on_tabWidget_currentChanged(int index){
         qDebug()<<"Zmiana";
         _selected_book=nullptr;
         _selected_my_book=nullptr;
+        ALLBOOOKS->Resource->clear();
+        MYBOOKS->Resource->clear();
+        clear_all_books();
+        clear_my_books();
         if(index==1){
-            ALLBOOOKS->Resource->clear();
-            clear_all_books();
             std::string mess="CONTENT|ALLBOOKS";
             _socket->Resource->write(mess.c_str());
             _socket->Resource->waitForBytesWritten();
@@ -237,8 +246,6 @@ void MainWindow::on_tabWidget_currentChanged(int index){
             fill_all_books(list);
         }
         else if (index==2){
-            MYBOOKS->Resource->clear();
-            clear_my_books();
             std::string mess="CONTENT|MYBOOKS";
             _socket->Resource->write(mess.c_str());
             _socket->Resource->waitForBytesWritten();
@@ -267,10 +274,10 @@ void MainWindow::on_tabWidget_currentChanged(int index){
         }
     }
 }
-void MainWindow::sent_data(QString data){
-    _socket->Resource->write(data.toStdString().c_str());
-    _socket->Resource->waitForBytesWritten();
-}
+//void MainWindow::sent_data(QString data){
+//    _socket->Resource->write(data.toStdString().c_str());
+//    _socket->Resource->waitForBytesWritten();
+//}
 void MainWindow::on_btn_return_clicked(){
     if(_selected_my_book!=nullptr){
         std::string mess="RETURN|"+_selected_my_book->Id.toStdString();

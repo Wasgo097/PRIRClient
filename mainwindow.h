@@ -31,8 +31,8 @@ private slots:
     void on_tabWidget_currentChanged(int index);
     void on_btn_return_clicked();
     void on_btn_orderorreserve_clicked();
-public slots:
-    void sent_data(QString data);
+//public slots:
+//    void sent_data(QString data);
 private:
     std::mutex ui_mtx;
     Ui::MainWindow *ui;
