@@ -6,11 +6,6 @@
 #include <QStringList>
 #include <QMessageBox>
 #include <QTcpSocket>
-#include "getallbooks.h"
-#include "getmybooks.h"
-#include "order.h"
-#include "reserve.h"
-#include "returnbook.h"
 typedef  std::string string;
 //#define test
 MainWindow::MainWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::MainWindow){

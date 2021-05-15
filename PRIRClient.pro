@@ -9,24 +9,14 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    getallbooks.cpp \
-    getmybooks.cpp \
     main.cpp \
     mainwindow.cpp \
-    mytask.cpp \
-    order.cpp \
-    reserve.cpp \
-    returnbook.cpp
+
 
 HEADERS += \
     Utilities.h \
-    getallbooks.h \
-    getmybooks.h \
     mainwindow.h \
-    mytask.h \
-    order.h \
-    reserve.h \
-    returnbook.h
+
 
 FORMS += \
     mainwindow.ui
